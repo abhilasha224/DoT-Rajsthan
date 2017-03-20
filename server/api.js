@@ -103,6 +103,114 @@ app.post('/jobDetails', function(req, res){
       });
 });
 
+function getDistanceScore(destination, source) {
+  let qPromise = require('promised-io/promise'),
+    deferred = qPromise.defer();
+
+  https
+  .get('https://maps.googleapis.com/maps/api/distancematrix/json?origins=' + source.replace(' ', '+') + '&destinations=' + destination.replace(' ', '+') +'&mode=driving&language=fr-FR&key=AIzaSyDt7kDTjXsXVbunB-6ZaIJQbmTFcADdCeo',
+    function(response,body) {
+      response.setEncoding('utf8');
+      response.on('data', function (chunk) {
+        var locScore = 0;
+        try {
+            var json = JSON.parse(chunk),
+              distance = Number(json.rows[0].elements[0].distance.value)/1000;
+
+            if (distance > 1000) {
+              locScore = 5;
+            } else if (distance > 850) {
+              locScore = 4;
+            } else if (distance > 600) {
+              locScore = 3;
+            } else if (distance > 400) {
+              locScore = 2;
+            } else if (distance > 300) {
+              locScore = 1;
+            }
+            console.log('Distance :: ' + distance);
+        } catch (e) {
+            locScore = 0;
+        }
+        console.log('LocScore :: ' + locScore);
+        deferred.resolve(locScore);
+      });
+    });
+  return deferred.promise;
+}
+
+function findJobs (criteria, jobs) {
+  let scoreOnExp = 0,
+    scoreOnLocation = 0,
+    scoreOnIndustry = 0,
+    scoreOnEducation = 0;
+
+  return jobs.filter(function (job) {
+    const q = require('promised-io/promise'),
+      deferred = q.defer();
+
+    scoreOnExp = 0;
+    scoreOnLocation = 0;
+    scoreOnIndustry = 0;
+    scoreOnEducation = 0;
+
+    const expExtractedFromStr = ((((job.experience[0] || '').split(':') || [])[1] || '').trim().match(/\d/g) || [])[0] || 0;
+    scoreOnExp = Math.abs(expExtractedFromStr ? expExtractedFromStr - criteria.experience : 0);
+
+    getDistanceScore(job.location, criteria.location)
+      .then(function (score) {
+        deferred.resolve(scoreOnExp + score + scoreOnIndustry + scoreOnEducation < 7);
+      });
+    return deferred.promise;
+  });
+}
+
+function getJobs(criteria) {
+  var q = require('promised-io/promise'),
+    deferred = q.defer();
+
+  MongoClient.connect(url, function(err, db) {
+    var jobStore = db.collection('job_store');
+    try {
+      jobStore.find({
+        "lastModified": {
+          $gt: new Date(Date.now() - 24*60*60*10 * 1000)
+        }
+      })
+      .toArray(function (err, results) {
+        if (err) { db.close(); return false; }
+        console.log('Jobs since past 10 days :: ');
+        console.log(results);
+        deferred.resolve(findJobs(criteria, results));
+      });
+    } catch (e) {
+      deferred.resolve({success: false});
+    }
+  });
+  return deferred.promise;
+}
+
+app.get('/getJobs', function (req, res) {
+  var filter = req.param('filter'),
+    q = require('promised-io/promise'),
+    deferred = q.defer();
+
+  MongoClient.connect(url, function(err, db) {
+    var jobStore = db.collection('job_store');
+    try {
+      jobStore.find({
+        source: filter
+      })
+      .toArray(function (err, results) {
+        if (err) { db.close(); return false; }
+        res.status(200).send({success: true, matchedJobs: results});
+      });
+    } catch (e) {
+      res.status(200).send({success: false, matchedJobs: []});
+    }
+  });
+});
+
 app.post('/submitDetails', function(req, res){
   var reqs = req.body || {},
     family_id = req.body.family_id || 'WDYYYGG',
@@ -132,10 +240,62 @@ app.post('/submitDetails', function(req, res){
         education: user.education,
         location: user.location,
         mobile: user.mobile_no,
-        registration_id: registration_id
+        registration_id: registration_id,
+        lastModified: new Date()
+      });
+      getJobs({
+        experience: experience,
+        industry: industry,
+        education: user.education,
+        location: user.location
+      }).then(function (data) {
+        res.status(200).send({success: true, matchedJobs: data});
       });
     } catch (e) {
       console.log('Error inserting record from {@member_id} :: ' + member_id + ' in user_store database');
+      getJobs({
+        experience: experience,
+        industry: industry,
+        education: user.education,
+        location: user.location
+      }).then(function (data) {
+        res.status(200).send({success: true, matchedJobs: data});
+      });
+    }
+  });
+});
+
+app.post('/submitJob', function(req, res){
+  var reqs = req.body || {},
+    education = req.body.education,
+    experience = req.body.experience,
+    location = req.body.location,
+    company = req.body.company,
+    title = req.body.title,
+    source = 'bhamashah_portal';
+
+  console.log('POST Request :: (÷) :: \n{@education}' + education +
+  ' ::: \n{@experience} ' + experience +
+  ' ::: \n{@location} ' + location +
+  ' ::: \n{@company} ' + company +
+  ' ::: \n{@title} ' + title +
+  ' ::: \n{@source} ' + source);
+
+  MongoClient.connect(url, function(err, db) {
+    var userStore = db.collection('job_store');
+    try {
+      userStore.insert({
+        experience: experience,
+        education: education,
+        location: location,
+        company: company,
+        title: title,
+        source: source,
+        lastModified: new Date()
+      });
+      res.status(200).send({success: true});
+    } catch (e) {
+      res.status(200).send({success: false});
     }
   });
 });

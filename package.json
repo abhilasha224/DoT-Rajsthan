@@ -1,0 +1,14 @@
+{
+  "name": "nodeapp",
+  "version": "1.0.0",
+  "description": "APIs for SR",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Abhilasha Lad",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.15.2"
+  }
+}

@@ -25,40 +25,36 @@ app.options("/*", function(req, res, next){
 //     response.setEncoding('utf8');
 //     response.on('data', function (chunk) {
 //       var bhamData = JSON.parse(chunk);
-//       console.log(bhamData);
 //       console.log('BODY: ',bhamData.hof_Details);
 //       var bhamDataJson = [];
-//       // get hof details
-//       var tempobj = {};
-//       tempobj.bhamashah_id = bhamData.hof_Details.BHAMASHAH_ID;
-//       tempobj.member_id = bhamData.hof_Details.M_ID;
-//       tempobj.name = bhamData.hof_Details.NAME_ENG;
-//       tempobj.dob = bhamData.hof_Details.DOB;
-//       tempobj.education = bhamData.hof_Details.EDUCATION_DESC_ENG;
-//       tempobj.location = bhamData.hof_Details.BLOCK_CITY;
-//       tempobj.family_id = bhamData.hof_Details.FAMILYIDNO;
-//       tempobj.registration_id = "";
-//       bhamDataJson.push(tempobj);
 //
+//       // get hof details
+//       var tempobj = createJson(bhamData.hof_Details);
 //
 //       // get Members details
 //       for(var memData in bhamData.family_Details)
 //       {
-//         tempobj.bhamashah_id = bhamData.family_Details[memData].BHAMASHAH_ID;
-//         tempobj.member_id = bhamData.family_Details[memData].M_ID;
-//         tempobj.name = bhamData.family_Details[memData].NAME_ENG;
-//         tempobj.dob = bhamData.family_Details[memData].DOB;
-//         tempobj.education = bhamData.family_Details[memData].EDUCATION_DESC_ENG;
-//         tempobj.location = bhamData.family_Details[memData].BLOCK_CITY;
-//         tempobj.family_id = bhamData.family_Details[memData].FAMILYIDNO;
-//         tempobj.registration_id = "";
+//         var tempobj = createJson(bhamData.family_Details[memData]);
 //         bhamDataJson.push(tempobj);
 //       }
-//         console.log("bhamDataJson",bhamDataJson);
-//       res.status(200).send(chunk);
+//       console.log("bhamDataJson",bhamDataJson);
+//       res.status(200).send(bhamDataJson);
 //     });
 //   });
 // });
+
+function createJson(rawData){
+  var tempobj = {};
+  tempobj.bhamashah_id = rawData.BHAMASHAH_ID;
+  tempobj.member_id = rawData.M_ID;
+  tempobj.name = rawData.NAME_ENG;
+  tempobj.dob = rawData.DOB;
+  tempobj.education = rawData.EDUCATION_DESC_ENG;
+  tempobj.location = rawData.BLOCK_CITY;
+  tempobj.family_id =rawData.FAMILYIDNO;
+  tempobj.registration_id = "";
+  return tempobj;
+}
 
 app.post('/jobDetails', function(req, res){
   var reqs = req.body || {},
@@ -68,41 +64,25 @@ app.post('/jobDetails', function(req, res){
 
   console.log('POST Request :: (jobDetails) :: {@bhamashah_id}' + bhamashah_id + ' ::: {@registration_id} ' + registration_id);
   https
-    .get("https://apitest.sewadwaar.rajasthan.gov.in/app/live/Service/hofAndMember/ForApp/" + family_id + '?client_id=" + client_id',
+    .get("https://apitest.sewadwaar.rajasthan.gov.in/app/live/Service/hofAndMember/ForApp/" + family_id + '?client_id=' + client_id,
       function(response,body) {
         response.setEncoding('utf8');
         response.on('data', function (chunk) {
           var bhamData = JSON.parse(chunk);
           console.log(bhamData);
-          console.log('BODY: ', bhamData.hof_Details);
+
           var bhamDataJson = [];
           // get hof details
-          var tempobj = {};
-          tempobj.bhamashah_id = bhamData.hof_Details.BHAMASHAH_ID;
-          tempobj.member_id = bhamData.hof_Details.M_ID;
-          tempobj.name = bhamData.hof_Details.NAME_ENG;
-          tempobj.dob = bhamData.hof_Details.DOB;
-          tempobj.education = bhamData.hof_Details.EDUCATION_DESC_ENG;
-          tempobj.location = bhamData.hof_Details.BLOCK_CITY;
-          tempobj.family_id = bhamData.hof_Details.FAMILYIDNO;
-          tempobj.registration_id = "";
+          var tempobj = createJson(bhamData.hof_Details);
           bhamDataJson.push(tempobj);
-
 
           // get Members details
           for(var memData in bhamData.family_Details)
           {
-            tempobj.bhamashah_id = bhamData.family_Details[memData].BHAMASHAH_ID;
-            tempobj.member_id = bhamData.family_Details[memData].M_ID;
-            tempobj.name = bhamData.family_Details[memData].NAME_ENG;
-            tempobj.dob = bhamData.family_Details[memData].DOB;
-            tempobj.education = bhamData.family_Details[memData].EDUCATION_DESC_ENG;
-            tempobj.location = bhamData.family_Details[memData].BLOCK_CITY;
-            tempobj.family_id = bhamData.family_Details[memData].FAMILYIDNO;
-            tempobj.registration_id = "";
+            var tempobj = createJson(bhamData.family_Details[memData]);
             bhamDataJson.push(tempobj);
           }
-          res.status(200).send(chunk);
+          res.status(200).send(bhamDataJson);
         });
       });
 });

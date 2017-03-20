@@ -1,9 +1,12 @@
 var express = require('express');
 var https = require('https');
 var app = express();
+//var fcmClient = require('vendors/fcm_sender.js');
 var bodyParser  = require('body-parser');
-var gcm = require('node-gcm');
+var FCM = require('fcm-node');
+var Exotel = require('exotel-node');
 var MongoClient = require('mongodb').MongoClient;
+
 var url = 'mongodb://localhost:27017/swarojgar';
 
 var fs = require("fs");
@@ -19,29 +22,32 @@ app.options("/*", function(req, res, next){
   res.sendStatus(200);
 });
 
-// app.get('/getUsers', function (req, res) {
-//   https.get("https://apitest.sewadwaar.rajasthan.gov.in/app/live/Service/hofAndMember/ForApp/WDYYYGG?client_id=ad7288a4-7764-436d-a727-783a977f1fe1",
-//     function(response,body){
-//     response.setEncoding('utf8');
-//     response.on('data', function (chunk) {
-//       var bhamData = JSON.parse(chunk);
-//       console.log('BODY: ',bhamData.hof_Details);
-//       var bhamDataJson = [];
-//
-//       // get hof details
-//       var tempobj = createJson(bhamData.hof_Details);
-//
-//       // get Members details
-//       for(var memData in bhamData.family_Details)
-//       {
-//         var tempobj = createJson(bhamData.family_Details[memData]);
-//         bhamDataJson.push(tempobj);
-//       }
-//       console.log("bhamDataJson",bhamDataJson);
-//       res.status(200).send(bhamDataJson);
-//     });
-//   });
-// });
+app.get('/getUsers', function (req, res) {
+  https.get("https://apitest.sewadwaar.rajasthan.gov.in/app/live/Service/hofAndMember/ForApp/WDYYYGG?client_id=ad7288a4-7764-436d-a727-783a977f1fe1",
+    function(response,body){
+    response.setEncoding('utf8');
+    response.on('data', function (chunk) {
+      var bhamData = JSON.parse(chunk);
+      console.log('BODY: ',bhamData.hof_Details);
+      var bhamDataJson = [];
+
+      // get hof details
+      var tempobj = createJson(bhamData.hof_Details);
+
+      // get Members details
+      for(var memData in bhamData.family_Details)
+      {
+        bhamData.family_Details[memData].hofMobileNo = bhamData.hof_Details.MOBILE_NO;
+        var tempobj = createJson(bhamData.family_Details[memData]);
+        bhamDataJson.push(tempobj);
+      }
+      console.log("bhamDataJson",bhamDataJson);
+      sendNotification();
+      sendMessage();
+      res.status(200).send(bhamDataJson);
+    });
+  });
+});
 
 function createJson(rawData){
   var tempobj = {};
@@ -50,8 +56,17 @@ function createJson(rawData){
   tempobj.name = rawData.NAME_ENG;
   tempobj.dob = rawData.DOB;
   tempobj.education = rawData.EDUCATION_DESC_ENG;
-  tempobj.location = rawData.BLOCK_CITY;
-  tempobj.family_id =rawData.FAMILYIDNO;
+  var address = rawData.BLOCK_CITY+","+ rawData.DISTRICT+","+ rawData.STATE;
+  tempobj.location = address;
+  tempobj.family_id = rawData.FAMILYIDNO;
+  console.log("mobile",rawData.MOBILE_NO);
+  if(typeof rawData.MOBILE_NO == "undefined")
+  {
+      tempobj.mobile_no = rawData.hofMobileNo;
+  }
+  else{
+    tempobj.mobile_no = rawData.MOBILE_NO;
+  }
   tempobj.registration_id = "";
   return tempobj;
 }
@@ -79,6 +94,7 @@ app.post('/jobDetails', function(req, res){
           // get Members details
           for(var memData in bhamData.family_Details)
           {
+            bhamData.family_Details[memData].hofMobileNo = bhamData.hof_Details.MOBILE_NO;
             var tempobj = createJson(bhamData.family_Details[memData]);
             bhamDataJson.push(tempobj);
           }
@@ -86,6 +102,42 @@ app.post('/jobDetails', function(req, res){
         });
       });
 });
+
+function sendNotification()
+{
+  var serverKey = 'AAAAzvp6sxM:APA91bHWLT68CiDGaOH7Yc9QDID_o5t8qGwx4G4VYwwJkstqZULurikddyXsHq2_ZHl5Q-qCz3B5b11-fc1r3jCx0d5N2mHvaaURi1NEIJnpXb4LOdBL7oWIa-HdGGuIrUub9pQp9ivB';
+  var fcm = new FCM(serverKey);
+
+  var message = { //this may vary according to the message type (single recipient, multicast, topic, et cetera)
+      to: 'dCi2iuy_hik:APA91bFTmdu766O9BTSJDX0JCWNMk6bqPI3sxxr1pPsyNR9TV0gzn2rHUXPrb_lU9eA_GmoOoPW4JOtBtPFx17uG0QL1DRqpcU_FEVveCq4vAem05ZTd9bdcItMYSLSE5b9X8mWb3Wuv',
+
+      notification: {
+          title: 'Job Alerts from Bhamashah',
+          body: 'Check for the perfectly suited jobs'
+      },
+  };
+  fcm.send(message, function(err, response){
+      if (err) {
+          console.log("Something has gone wrong!");
+      } else {
+          console.log("Successfully sent with response: ", response);
+      }
+  });
+}
+
+function sendMessage()
+{
+  Exotel.init('thinkstuds1', 'cb74adaa56652b73bb7e007361a36aeff42df2bf');
+  Exotel.sendSMS(['8788659354','8796564649'], "test message", function(error, response) {
+  if (!error) {
+    console.log(response);
+  }
+  if(response)
+  {
+    console.log("Message sent successfully");
+  }
+});
+}
 
 var server = app.listen(8081, function () {
 

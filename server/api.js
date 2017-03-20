@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 app.options("/*", function(req, res, next){
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
   res.sendStatus(200);
 });
 
@@ -50,12 +50,26 @@ function createJson(rawData){
   tempobj.name = rawData.NAME_ENG;
   tempobj.dob = rawData.DOB;
   tempobj.education = rawData.EDUCATION_DESC_ENG;
+  var address = rawData.BLOCK_CITY+","+ rawData.DISTRICT+","+ rawData.STATE;
+  tempobj.location = address;
   tempobj.relation = rawData.RELATION_ENG;
-  tempobj.location = rawData.BLOCK_CITY;
-  tempobj.family_id =rawData.FAMILYIDNO;
-  tempobj.registration_id = "";
+  tempobj.family_id = rawData.FAMILYIDNO;
+  console.log("mobile",rawData.MOBILE_NO);
+  if(typeof rawData.MOBILE_NO == "undefined")
+  {
+      tempobj.mobile_no = rawData.hofMobileNo;
+  }
+  else{
+    tempobj.mobile_no = rawData.MOBILE_NO;
+  }
   return tempobj;
 }
+
+app.post('/saveJobs', function (req, res) {
+  var reqs = req.body || {};
+  console.log("savejobs",reqs);
+  res.send(200);
+});
 
 app.post('/jobDetails', function(req, res){
   var reqs = req.body || {},
@@ -81,6 +95,7 @@ app.post('/jobDetails', function(req, res){
           for(var memData in bhamData.family_Details)
           {
             var tempobj = createJson(bhamData.family_Details[memData]);
+            tempobj.registration_id = registration_id;
             bhamDataJson.push(tempobj);
           }
           res.status(200).send(bhamDataJson);

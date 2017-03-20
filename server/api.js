@@ -62,7 +62,7 @@ app.post('/jobDetails', function(req, res){
     registration_id = req.body.registration_id,
     client_id = 'ad7288a4-7764-436d-a727-783a977f1fe1';
 
-  console.log('POST Request :: (jobDetails) :: {@bhamashah_id}' + bhamashah_id + ' ::: {@registration_id} ' + registration_id);
+  console.log('POST Request :: (jobDetails) :: {@family_id}' + family_id + ' ::: {@registration_id} ' + registration_id);
   https
     .get("https://apitest.sewadwaar.rajasthan.gov.in/app/live/Service/hofAndMember/ForApp/" + family_id + '?client_id=' + client_id,
       function(response,body) {

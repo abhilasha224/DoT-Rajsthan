@@ -10,5 +10,10 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.15.2"
+  },
+  "devDependencies": {
+    "body-parser": "^1.17.1",
+    "mongodb": "^2.2.25",
+    "node-gcm": "^0.14.4"
   }
 }

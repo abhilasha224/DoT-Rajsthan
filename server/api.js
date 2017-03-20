@@ -18,7 +18,7 @@ app.use(bodyParser.json());
 app.options("/*", function(req, res, next){
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
   res.sendStatus(200);
 });
 
@@ -42,8 +42,8 @@ app.get('/getUsers', function (req, res) {
         bhamDataJson.push(tempobj);
       }
       console.log("bhamDataJson",bhamDataJson);
-      sendNotification();
-      sendMessage();
+      //sendNotification();
+      //sendMessage();
       res.status(200).send(bhamDataJson);
     });
   });
@@ -67,9 +67,15 @@ function createJson(rawData){
   else{
     tempobj.mobile_no = rawData.MOBILE_NO;
   }
-  tempobj.registration_id = "";
+  //tempobj.registration_id = "";
   return tempobj;
 }
+
+app.post('/saveJobs', function (req, res) {
+  var reqs = req.body || {};
+  console.log("savejobs",reqs);
+  res.send(200);
+});
 
 app.post('/jobDetails', function(req, res){
   var reqs = req.body || {},

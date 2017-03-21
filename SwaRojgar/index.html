@@ -6,15 +6,28 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
     <script src = "https://ajax.googleapis.com/ajax/libs/angularjs/1.3.3/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="styles/main.css">
     <script>
       angular.module('bhamashahApp', [])
-        .controller("MainCtrl", function(){})
+        .controller("MainCtrl", function($scope,$http){
+          $scope.getJobs = function()
+          {
+            $http({
+                method: 'GET',
+                url: 'http://5915dcc2.ngrok.io/getJobs',
+              }).then(function(response){
+                console.log("success",response);
+              },function errorCallback(response) {
+                console.log("error",response);
+              });
+          }
+          //$scope.getJobs();
+        })
         .controller("MyCtrl", function($scope,$http){
           $scope.formData = {};
-
           $scope.jobFormSubmit = function($event) {
               $event.preventDefault();
               var jobPostJson = {};
@@ -28,32 +41,67 @@
               console.log(jobPostJson);
               $http({
                   method: 'POST',
-                  url: 'http://localhost:8081/saveJobs',
+                  url: 'http://5915dcc2.ngrok.io/submitJob',
                   data: jobPostJson,
                 }).then(function(success){
                   console.log("success");
                 },function errorCallback(response) {
                   console.log("response",response);
                 });
-          };
+          }
+        })
+        .controller("showPostCtrl", function($scope){
+
         });
+
+
+        $(function(){
+          console.log("ajax");
+
+          $.ajax({
+            url:'http://5915dcc2.ngrok.io/getJobs',
+            method: 'GET',
+            success: function(res)
+            {
+              console.log("success",res)
+            }
+          });
+          $('.menu div').on("click",function(){
+            var classnm = $(this).attr('class');
+            console.log("clicked--"+ ''+classnm+"_sec");
+            $('.'+classnm+"_sec").css("display","block");
+            $('.'+($(this).siblings().attr('class'))+"_sec").css("display","none");
+          });
+        });
+
     </script>
   </head>
-  <body ng-init="" ng-app="bhamashahApp" ng-controller="MainCtrl" class="mainCtrl container">
-    <header>
-      <h1>Bhamashah SwaRojgar</h1>
-    </header>
-    <section class="section1 col-lg-1 text-center">
-        <h2 class="text-white">Welcome to Bhamashah SwaRojgar</h2>
-        <form name="jobPostForm" ng-submit="jobPostForm.$valid && jobFormSubmit($event)" ng-controller="MyCtrl">
-          <label>Education:</label><input name="education" ng-model="education" type="text" required>
-          <label>Experience:</label><input name="experience" ng-model="experience" type="text" required>
-          <label>Location:</label><input name="location" ng-model="location" type="text" required>
-          <label>Department:</label><input name="company" ng-model="company" type="text" required>
-          <label>Job Title:</label><input name="title" ng-model="title" type="text" required>
-          <input name="next" type="submit" class="btn-success" style="width: 200px;height: 50px;text-align:center" value="Next">
-        </form>
-    </section>
+  <body ng-init="tab=1" ng-app="bhamashahApp" ng-controller="MainCtrl" class="mainCtrl container">
+    <nav class="col-lg-2">
+      <div class="menu">
+        <div class="item1" ng-click="tab=1">Post New Job</div>
+        <div class="item2" ng-click="">View Posted Jobs</div>
+      </div>
+    </nav>
+    <div class="col-lg-8  ">
+      <header>
+        <h1>Bhamashah SwaRojgar</h1>
+      </header>
+      <section class="section1 col-lg-1 text-center item1_sec" ng-show="tab==1" >
+          <h2 class="text-white">Welcome to Bhamashah SwaRojgar</h2>
+          <form action="" name="jobPostForm" ng-submit="jobFormSubmit()" ng-controller="MyCtrl">
+            <label>Education:</label><input name="education" ng-model="education" type="text" required>
+            <label>Experience:</label><input name="experience" ng-model="experience" type="text" required>
+            <label>Location:</label><input name="location" ng-model="location" type="text" required>
+            <label>Department:</label><input name="company" ng-model="company" type="text" required>
+            <label>Job Title:</label><input name="title" ng-model="title" type="text" required>
+            <input name="next" type="submit" class="btn-success" style="width: 200px;height: 50px;text-align:center" value="Next">
+          </form>
+      </section>
+      <section class="item2_sec" style="display:none;">
+
+      </section>
+  </div>
 
   </body>
 </html>

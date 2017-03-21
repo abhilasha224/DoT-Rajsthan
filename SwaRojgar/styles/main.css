@@ -1,9 +1,16 @@
 .mainCtrl{
-
+  margin: 0;
+  width: 100%;
 }
 h1{
   color: #000;
   text-align: center;
+}
+nav{
+  display: block;
+    height: 700px;
+    border-right: 1px solid;
+    padding-top: 100px;
 }
 .section1{
   background-size: cover;
@@ -35,4 +42,11 @@ h1{
     text-align: left;
     height: 40px;
     margin-bottom: 20px;
+}
+.menu div {
+    height: 40px;
+    border-bottom: 1px solid #ccc;
+    margin-top: 15px;
+    font-size: 17px;
+    cursor: pointer;
 }

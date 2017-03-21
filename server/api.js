@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 app.options("/*", function(req, res, next){
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, Content-Type , X-Requested-With', 'Accept');
   res.sendStatus(200);
 });
 
@@ -103,13 +103,13 @@ app.post('/jobDetails', function(req, res){
       });
 });
 
-function getDistanceScore(destination, source) {
+function getDistanceScore(destination, source, scores) {
   let qPromise = require('promised-io/promise'),
     deferred = qPromise.defer();
 
   https
   .get('https://maps.googleapis.com/maps/api/distancematrix/json?origins=' + source.replace(' ', '+') + '&destinations=' + destination.replace(' ', '+') +'&mode=driving&language=fr-FR&key=AIzaSyDt7kDTjXsXVbunB-6ZaIJQbmTFcADdCeo',
-    function(response,body) {
+    function(response, body) {
       response.setEncoding('utf8');
       response.on('data', function (chunk) {
         var locScore = 0;
@@ -128,12 +128,10 @@ function getDistanceScore(destination, source) {
             } else if (distance > 300) {
               locScore = 1;
             }
-            console.log('Distance :: ' + distance);
         } catch (e) {
             locScore = 0;
         }
-        console.log('LocScore :: ' + locScore);
-        deferred.resolve(locScore);
+        deferred.resolve({locScore: locScore, scores: scores});
       });
     });
   return deferred.promise;
@@ -157,9 +155,17 @@ function findJobs (criteria, jobs) {
     const expExtractedFromStr = ((((job.experience[0] || '').split(':') || [])[1] || '').trim().match(/\d/g) || [])[0] || 0;
     scoreOnExp = Math.abs(expExtractedFromStr ? expExtractedFromStr - criteria.experience : 0);
 
-    getDistanceScore(job.location, criteria.location)
+    getDistanceScore(
+      job.location,
+      criteria.location, {
+        scoreOnExp: scoreOnExp,
+        scoreOnLocation: scoreOnLocation,
+        scoreOnIndustry: scoreOnIndustry,
+        scoreOnEducation: scoreOnEducation
+      })
       .then(function (score) {
-        deferred.resolve(scoreOnExp + score + scoreOnIndustry + scoreOnEducation < 7);
+        console.log('Final Score :: ' + (score.scores.scoreOnExp + score.locScore + score.scores.scoreOnIndustry + score.scores.scoreOnEducation));
+        deferred.resolve((score.scores.scoreOnExp + score.locScore + score.scores.scoreOnIndustry + score.scores.scoreOnEducation) < 5);
       });
     return deferred.promise;
   });
@@ -179,8 +185,8 @@ function getJobs(criteria) {
       })
       .toArray(function (err, results) {
         if (err) { db.close(); return false; }
-        console.log('Jobs since past 10 days :: ');
-        console.log(results);
+        console.log('Jobs matching criteria :: ');
+        console.log(findJobs(criteria, results));
         deferred.resolve(findJobs(criteria, results));
       });
     } catch (e) {
@@ -193,14 +199,13 @@ function getJobs(criteria) {
 app.get('/getJobs', function (req, res) {
   var filter = req.param('filter'),
     q = require('promised-io/promise'),
-    deferred = q.defer();
+    deferred = q.defer(),
+    sources = filter ? {source: filter} : {};
 
   MongoClient.connect(url, function(err, db) {
     var jobStore = db.collection('job_store');
     try {
-      jobStore.find({
-        source: filter
-      })
+      jobStore.find(sources)
       .toArray(function (err, results) {
         if (err) { db.close(); return false; }
         res.status(200).send({success: true, matchedJobs: results});

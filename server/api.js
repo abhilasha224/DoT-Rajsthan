@@ -12,12 +12,18 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 app.use(bodyParser.json());
-app.options("/*", function(req, res, next){
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, Content-Type , X-Requested-With', 'Accept');
-  res.sendStatus(200);
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  next();
 });
+// app.options("/*", function(req, res, next){
+//   res.header('Access-Control-Allow-Origin', '*');
+//   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+//   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length , X-Requested-With', 'Accept');
+//   res.sendStatus(200);
+// });
 
 // app.get('/getUsers', function (req, res) {
 //   https.get("https://apitest.sewadwaar.rajasthan.gov.in/app/live/Service/hofAndMember/ForApp/WDYYYGG?client_id=ad7288a4-7764-436d-a727-783a977f1fe1",
@@ -277,7 +283,7 @@ app.post('/submitJob', function(req, res){
     location = req.body.location,
     company = req.body.company,
     title = req.body.title,
-    source = 'bhamashah_portal';
+    source = req.body.source || 'bhamashah_portal';
 
   console.log('POST Request :: (÷) :: \n{@education}' + education +
   ' ::: \n{@experience} ' + experience +

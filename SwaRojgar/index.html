@@ -17,7 +17,7 @@
           {
             $http({
                 method: 'GET',
-                url: 'http://5915dcc2.ngrok.io/getJobs',
+                url: 'http://localhost:8081/getJobs',
               }).then(function(response){
                 console.log("success",response);
               },function errorCallback(response) {
@@ -29,7 +29,6 @@
         .controller("MyCtrl", function($scope,$http){
           $scope.formData = {};
           $scope.jobFormSubmit = function($event) {
-              $event.preventDefault();
               var jobPostJson = {};
               jobPostJson.education = $scope.education;
               jobPostJson.experience = $scope.experience;
@@ -41,7 +40,7 @@
               console.log(jobPostJson);
               $http({
                   method: 'POST',
-                  url: 'http://5915dcc2.ngrok.io/submitJob',
+                  url: 'http://localhost:8081/submitJob',
                   data: jobPostJson,
                 }).then(function(success){
                   console.log("success");
@@ -59,7 +58,7 @@
           console.log("ajax");
 
           $.ajax({
-            url:'http://5915dcc2.ngrok.io/getJobs',
+            url:'http://localhost:8081/getJobs',
             method: 'GET',
             success: function(res)
             {
@@ -89,14 +88,14 @@
       </header>
       <section class="section1 col-lg-1 text-center item1_sec" ng-show="tab==1" >
           <h2 class="text-white">Welcome to Bhamashah SwaRojgar</h2>
-          <form action="" name="jobPostForm" ng-submit="jobFormSubmit()" ng-controller="MyCtrl">
+          <div ng-controller="MyCtrl">
             <label>Education:</label><input name="education" ng-model="education" type="text" required>
             <label>Experience:</label><input name="experience" ng-model="experience" type="text" required>
             <label>Location:</label><input name="location" ng-model="location" type="text" required>
             <label>Department:</label><input name="company" ng-model="company" type="text" required>
             <label>Job Title:</label><input name="title" ng-model="title" type="text" required>
-            <input name="next" type="submit" class="btn-success" style="width: 200px;height: 50px;text-align:center" value="Next">
-          </form>
+            <input name="next" type="submit" ng-click="jobFormSubmit()" class="btn-success" style="width: 200px;height: 50px;text-align:center" value="Next">
+          </div>
       </section>
       <section class="item2_sec" style="display:none;">
 

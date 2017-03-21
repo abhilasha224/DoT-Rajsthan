@@ -2,8 +2,8 @@ var schedule = require('node-schedule');
 var https = require('https');
 var rule = new schedule.RecurrenceRule();
 rule.dayOfWeek = [0, new schedule.Range(2, 2)];
-rule.hour = 07;
-rule.minute = 41;
+rule.hour = 09;
+rule.minute = 04;
 
 var FCM = require('fcm-node');
 var Exotel = require('exotel-node');
@@ -33,7 +33,7 @@ function sendNotification(title, body, to) {
 
 function sendMessage(title, message, to) {
   Exotel.init('thinkstuds1', 'cb74adaa56652b73bb7e007361a36aeff42df2bf');
-  Exotel.sendSMS(to, title + ' .' + message, function(error, response) {
+  Exotel.sendSMS([to], title + ' .' + message, function(error, response) {
     if (!error) {
       console.log(response);
     }

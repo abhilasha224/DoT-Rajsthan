@@ -24,7 +24,7 @@ nav{
 .section1 h2{
   color: white;
 }
-.section1 form{
+.section1 div{
   width: 500px;
     display: block;
     margin: 0 auto;
@@ -37,7 +37,7 @@ nav{
   margin-left: 54px;
   font-weight: 700;
 }
-.section1 form input{
+.section1 div input{
   width: 400px;
     text-align: left;
     height: 40px;

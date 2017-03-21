@@ -25,29 +25,29 @@ app.use(function(req, res, next) {
 //   res.sendStatus(200);
 // });
 
-// app.get('/getUsers', function (req, res) {
-//   https.get("https://apitest.sewadwaar.rajasthan.gov.in/app/live/Service/hofAndMember/ForApp/WDYYYGG?client_id=ad7288a4-7764-436d-a727-783a977f1fe1",
-//     function(response,body){
-//     response.setEncoding('utf8');
-//     response.on('data', function (chunk) {
-//       var bhamData = JSON.parse(chunk);
-//       console.log('BODY: ',bhamData.hof_Details);
-//       var bhamDataJson = [];
-//
-//       // get hof details
-//       var tempobj = createJson(bhamData.hof_Details);
-//
-//       // get Members details
-//       for(var memData in bhamData.family_Details)
-//       {
-//         var tempobj = createJson(bhamData.family_Details[memData]);
-//         bhamDataJson.push(tempobj);
-//       }
-//       console.log("bhamDataJson",bhamDataJson);
-//       res.status(200).send(bhamDataJson);
-//     });
-//   });
-// });
+app.get('/getUsers', function (req, res) {
+  https.get("https://apitest.sewadwaar.rajasthan.gov.in/app/live/Service/hofAndMember/ForApp/WDYYYGG?client_id=ad7288a4-7764-436d-a727-783a977f1fe1",
+    function(response,body){
+    response.setEncoding('utf8');
+    response.on('data', function (chunk) {
+      var bhamData = JSON.parse(chunk);
+      console.log('BODY: ',bhamData.hof_Details);
+      var bhamDataJson = [];
+
+      // get hof details
+      var tempobj = createJson(bhamData.hof_Details);
+
+      // get Members details
+      for(var memData in bhamData.family_Details)
+      {
+        var tempobj = createJson(bhamData.family_Details[memData]);
+        bhamDataJson.push(tempobj);
+      }
+      console.log("bhamDataJson",bhamDataJson);
+      res.status(200).send(bhamDataJson);
+    });
+  });
+});
 
 function createJson(rawData){
   var tempobj = {};
@@ -311,7 +311,7 @@ app.post('/submitJob', function(req, res){
   });
 });
 
-var server = app.listen(8081, function () {
+var server = app.listen(8080, function () {
 
   var host = "127.0.0.1";
   var port = server.address().port;

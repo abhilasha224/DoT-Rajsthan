@@ -50,3 +50,15 @@ nav{
     font-size: 17px;
     cursor: pointer;
 }
+
+
+.item {
+  width: 47%;
+background: #ccc;
+display: inline-block;
+padding: 10px;
+float: left;
+height: 116px;
+margin-right: 20px;
+margin-bottom: 20px;
+}

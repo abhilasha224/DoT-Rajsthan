@@ -13,18 +13,8 @@
     <script>
       angular.module('bhamashahApp', [])
         .controller("MainCtrl", function($scope,$http){
-          $scope.getJobs = function()
-          {
-            $http({
-                method: 'GET',
-                url: 'http://localhost:8081/getJobs',
-              }).then(function(response){
-                console.log("success",response);
-              },function errorCallback(response) {
-                console.log("error",response);
-              });
-          }
-          //$scope.getJobs();
+
+
         })
         .controller("MyCtrl", function($scope,$http){
           $scope.formData = {};
@@ -40,10 +30,11 @@
               console.log(jobPostJson);
               $http({
                   method: 'POST',
-                  url: 'http://localhost:8081/submitJob',
+                  url: 'http://5915dcc2.ngrok.io/submitJob',
                   data: jobPostJson,
                 }).then(function(success){
                   console.log("success");
+                  callAjax();
                 },function errorCallback(response) {
                   console.log("response",response);
                 });
@@ -53,18 +44,30 @@
 
         });
 
-
-        $(function(){
-          console.log("ajax");
-
+        function callAjax(){
+          var divhtml ='';
           $.ajax({
-            url:'http://localhost:8081/getJobs',
+            url:'http://5915dcc2.ngrok.io/getJobs?filter=Gov',
             method: 'GET',
             success: function(res)
             {
-              console.log("success",res)
+              for(var item in res.matchedJobs)
+              {
+                divhtml += "<div class='item item_"+item+"'><strong title='title'>"+res.matchedJobs[item].title+"</strong>";
+                divhtml += "<div class='location'>"+res.matchedJobs[item].location+"</div>";
+                divhtml += "<div class='education'>Education Required: "+res.matchedJobs[item].education+"</div>";
+                divhtml += "<div class='experience'>Experience Required: "+res.matchedJobs[item].experience+"</div></div>";
+                $(".item2_sec").html(divhtml);
+                console.log("success",res.matchedJobs[item].title);
+              }
+
+              console.log("success",res.matchedJobs[0]);
             }
           });
+        }
+        $(function(){
+
+          callAjax();
           $('.menu div').on("click",function(){
             var classnm = $(this).attr('class');
             console.log("clicked--"+ ''+classnm+"_sec");
@@ -98,7 +101,7 @@
           </div>
       </section>
       <section class="item2_sec" style="display:none;">
-
+          <div class="job_title"></div>
       </section>
   </div>
 
